@@ -1,4 +1,12 @@
+# 1) Design model (input, output size, forward pass)
+# 2) Construct loss and optimizer
+# 3) Training loop
+#  - forward pass: compute prediction
+#  - backward pass: gradients
+#  - update weighta
+
 import torch 
+import torch.nn as nn
 
 # f = w * x
 
@@ -12,15 +20,14 @@ w = torch.tensor(0.0, dtype=torch.float32, requires_grad=True)
 def forward(x):
     return w * x
 
-# loss = MSE
-def loss(y, y_predicted):
-    return ((y-y_predicted)**2).mean()
-
 print(f'Prediction before training: f(5) = {forward(5):.3f}')
 
 # Training
 learning_rate = 0.01
-n_iters = 20
+n_iters = 100
+
+loss = nn.MSELoss()
+optimizer = torch.optim.SGD([w], lr=learning_rate)
 
 for epoch in range(n_iters):
     # prediction = forward pass
@@ -33,13 +40,12 @@ for epoch in range(n_iters):
     l.backward() # dl/dW
 
     # update weights
-    with torch.no_grad():
-        w -= learning_rate * w.grad
-
+    optimizer.step()
+    
     # zero gradients
-    w.grad.zero_()
+    optimizer.zero_grad()
 
-    if epoch % 1 == 0:
+    if epoch % 10 == 0:
         print(f"epoch {epoch+1}: w = {w:.3f}, loss = {l:.8f}")
 
     
