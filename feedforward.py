@@ -103,7 +103,7 @@ for epoch in range(num_epochs):
         if (i+1) % 100 == 0:
             print(f'epoch {epoch+1} / {num_epochs}, step {i+1}/{n_total_steps}, loss = {loss.item():.4f}')
             writer.add_scalar("training_loss", running_loss / 100, epoch * n_total_steps + i)
-            writer.add_scalar("accuracy", running_loss / 100, epoch * n_samples + i)
+            writer.add_scalar("accuracy", running_correct / 100, epoch * n_total_steps + i)
             running_loss = 0.0
             running_correct = 0
 
