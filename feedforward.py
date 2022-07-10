@@ -12,6 +12,11 @@ import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
+import sys
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter("runs/mnist")
+
+
 
 # dvice config
 device = torch.device('cuda' if torch.cuda.is_available else 'cpu')
@@ -33,14 +38,18 @@ train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=bat
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
 
 examples = iter(train_loader)
-samples, labels = examples.next()
+example_data, example_targets = examples.next()
 # print(samples[:, 0], labels.shape)
 
 for i in range(6):
     plt.subplot(2, 3, i+1)
-    plt.imshow(samples[i][0], cmap='gray')
+    plt.imshow(example_data[i][0], cmap='gray')
 
 # plt.show()
+img_grid = torchvision.utils.make_grid(example_data)
+writer.add_image('mnist_images',img_grid)
+writer.close()
+# sys.exit()
 
 class NeuralNet(nn.Module):
     def __init__(self, input_size, hidden_size, num_classes):
@@ -61,8 +70,15 @@ model = NeuralNet(input_size, hidden_size, num_classes).cuda()
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
+writer.add_graph(model, example_data.reshape(-1, 784).to(device))
+writer.close()
+
 # training loop
 n_total_steps = len(train_loader)
+
+running_loss = 0.0
+running_correct = 0
+
 for epoch in range(num_epochs):
     for i, (images, labels) in enumerate(train_loader):
         # 100, 1, 28, 28
@@ -79,8 +95,17 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
 
+        running_loss += loss.item()
+        
+        _, predicted = torch.max(outputs.data, 1)
+        running_correct += (predicted == labels).sum().item()
+         
         if (i+1) % 100 == 0:
             print(f'epoch {epoch+1} / {num_epochs}, step {i+1}/{n_total_steps}, loss = {loss.item():.4f}')
+            writer.add_scalar("training_loss", running_loss / 100, epoch * n_total_steps + i)
+            writer.add_scalar("accuracy", running_loss / 100, epoch * n_samples + i)
+            running_loss = 0.0
+            running_correct = 0
 
 # test 
 with torch.no_grad():
