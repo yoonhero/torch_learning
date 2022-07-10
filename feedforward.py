@@ -34,13 +34,13 @@ test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=batch
 
 examples = iter(train_loader)
 samples, labels = examples.next()
-print(samples[:, 0], labels.shape)
+# print(samples[:, 0], labels.shape)
 
 for i in range(6):
     plt.subplot(2, 3, i+1)
     plt.imshow(samples[i][0], cmap='gray')
 
-plt.show()
+# plt.show()
 
 class NeuralNet(nn.Module):
     def __init__(self, input_size, hidden_size, num_classes):
@@ -101,3 +101,21 @@ with torch.no_grad():
     print(f'accuracy = {acc}')
 
 
+FILE = "model.pth"
+torch.save(model.state_dict(), FILE)
+# model = torch.load(FILe)
+# model.eval()
+
+# loaded_model.load_state_dict(torch.load(FILE))
+
+checkpoint = {
+    "epoch":100,
+    "model_state": model.state_dict(),
+    "optim_state": optimizer.state_dict()
+}
+
+torch.save(checkpoint, "checkpoint.pth")
+# loaded_checkpoint = torch.load("checkpoint.pth")
+# epoch = loaded_checkpoint["epoch"]
+# model.load_state_dict(checkpoint["model_state"])
+# optimizer.load_state_dict(checkpoint["optimizer"])
